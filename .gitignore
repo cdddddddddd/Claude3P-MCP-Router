@@ -1,0 +1,15 @@
+node_modules/
+logs/
+*.log
+.env
+bun-build-*
+claude3p-mcp-router.zip
+installer/
+config.json
+certs/
+dist/*.d.ts
+dist/*.d.ts.map
+dist/*.js.map
+dist/mkcert.exe
+mkcert.exe
+docs/

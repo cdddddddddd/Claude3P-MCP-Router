@@ -1,0 +1,30 @@
+{
+  "_comment": "配置示例。将此文件复制为 config.json 并根据需要修改。API key 放在同目录 .env 文件中。",
+  "port": 3100,
+  "host": "localhost",
+  "https": {
+    "key": "./certs/localhost-key.pem",
+    "cert": "./certs/localhost.pem"
+  },
+  "servers": [
+    {
+      "name": "minimax",
+      "command": "uvx",
+      "args": ["minimax-coding-plan-mcp", "-y"],
+      "env": {
+        "MINIMAX_API_HOST": "https://api.minimaxi.com",
+        "MINIMAX_API_KEY": ""
+      },
+      "enabled": true
+    }
+  ],
+  "managedMcpServers": [
+    {
+      "name": "minimax",
+      "toolPolicy": {
+        "web_search": "allow",
+        "understand_image": "allow"
+      }
+    }
+  ]
+}
