@@ -34,6 +34,7 @@ function runHelp() {
     console.log('  reload      Sync + restart server');
     console.log('  sync        Sync managedMcpServers to Claude 3p config');
     console.log('  cert-setup  Generate HTTPS certificates');
+    console.log('  autostart   Enable/disable auto-start on boot');
     console.log('  help        Show this help');
 }
 function runSync() {
@@ -218,6 +219,38 @@ function runReload() {
     runStop();
     setTimeout(() => startInBackground(), 1500);
 }
+function runAutostart(subcmd) {
+    const startupDir = join(process.env.APPDATA || '', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup');
+    const vbsPath = join(startupDir, 'Claude3P-MCP-Router.vbs');
+    if (subcmd === 'enable' || subcmd === 'on') {
+        if (!existsSync(startupDir))
+            mkdirSync(startupDir, { recursive: true });
+        // VBS runs the start command silently (no console window)
+        const vbs = `CreateObject("WScript.Shell").Run "claude3p-mcp-router start", 0, False`;
+        writeFileSync(vbsPath, vbs);
+        console.log('Auto-start enabled. Server will start on next login.');
+    }
+    else if (subcmd === 'disable' || subcmd === 'off') {
+        if (existsSync(vbsPath)) {
+            fs.unlinkSync(vbsPath);
+            console.log('Auto-start disabled.');
+        }
+        else {
+            console.log('Auto-start is not enabled.');
+        }
+    }
+    else if (subcmd === 'status' || !subcmd) {
+        if (existsSync(vbsPath)) {
+            console.log('Auto-start: ENABLED (' + vbsPath + ')');
+        }
+        else {
+            console.log('Auto-start: DISABLED');
+        }
+    }
+    else {
+        console.log('Usage: claude3p-mcp-router autostart [enable|disable|status]');
+    }
+}
 // ============== 主入口 ==============
 const cmd = process.argv[2] || '';
 switch (cmd) {
@@ -235,6 +268,9 @@ switch (cmd) {
     case 'cert-setup':
     case 'cert':
         runCertSetup();
+        break;
+    case 'autostart':
+        runAutostart(process.argv[3] || 'status');
         break;
     case 'start': {
         try {

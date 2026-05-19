@@ -39,7 +39,8 @@ claude3p-mcp-router sync                   # Sync config to Claude 3P
 | `status` | Show health status table (endpoints + tool counts) |
 | `sync` | Write `managedMcpServers` to Claude 3P config |
 | `reload` | `sync` + restart server |
-| `cert-setup` | Generate localhost HTTPS certificate via OpenSSL |
+| `cert-setup` | Generate localhost HTTPS certificate via node-forge |
+| `autostart` | Enable/disable auto-start on Windows boot |
 | `help` | Show help |
 
 ## Configuration (`config.json`)
@@ -128,7 +129,8 @@ claude3p-mcp-router sync                   # 同步配置到 Claude 3P
 | `status` | 查看健康状态表格（端点 + 工具数） |
 | `sync` | 将 `managedMcpServers` 同步写入 Claude 3P 配置 |
 | `reload` | 同步配置 + 重启服务 |
-| `cert-setup` | 通过 OpenSSL 生成本地 HTTPS 自签名证书 |
+| `cert-setup` | 通过 node-forge 生成本地 HTTPS 自签名证书 |
+| `autostart` | 开启/关闭 Windows 开机自动启动 |
 | `help` | 显示帮助信息 |
 
 ### 配置说明 (`config.json`)
