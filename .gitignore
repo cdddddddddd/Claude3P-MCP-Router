@@ -10,6 +10,4 @@ certs/
 dist/*.d.ts
 dist/*.d.ts.map
 dist/*.js.map
-dist/mkcert.exe
-mkcert.exe
 docs/

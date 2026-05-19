@@ -39,7 +39,7 @@ claude3p-mcp-router sync                   # Sync config to Claude 3P
 | `status` | Show health status table (endpoints + tool counts) |
 | `sync` | Write `managedMcpServers` to Claude 3P config |
 | `reload` | `sync` + restart server |
-| `cert-setup` | Generate localhost HTTPS certificate via mkcert |
+| `cert-setup` | Generate localhost HTTPS certificate via OpenSSL |
 | `help` | Show help |
 
 ## Configuration (`config.json`)
@@ -96,6 +96,7 @@ Each MCP server gets its own endpoint and toolPolicy. The router manages child p
 ## Requirements
 
 - **Node.js** >= 20
+- **OpenSSL** (bundled with Git for Windows; used for HTTPS certificate generation)
 - **Windows** (currently; cross-platform support planned)
 - **pip** (for installing `uv`, auto-detected on first start)
 
@@ -128,7 +129,7 @@ claude3p-mcp-router sync                   # 同步配置到 Claude 3P
 | `status` | 查看健康状态表格（端点 + 工具数） |
 | `sync` | 将 `managedMcpServers` 同步写入 Claude 3P 配置 |
 | `reload` | 同步配置 + 重启服务 |
-| `cert-setup` | 通过 mkcert 生成本地 HTTPS 证书 |
+| `cert-setup` | 通过 OpenSSL 生成本地 HTTPS 自签名证书 |
 | `help` | 显示帮助信息 |
 
 ### 配置说明 (`config.json`)
@@ -159,6 +160,7 @@ Claude Desktop (3P Gateway)
 ### 环境要求
 
 - **Node.js** >= 20
+- **OpenSSL**（Git for Windows 自带；用于生成 HTTPS 证书）
 - **Windows**（目前仅支持 Windows，跨平台计划中）
 - **pip**（用于安装 uv，首次启动自动检测）
 

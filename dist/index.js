@@ -86,20 +86,36 @@ function runSync() {
     console.log('\nDone. Restart Claude to apply.');
 }
 function runCertSetup() {
-    const mkcertPath = join(PROJECT_DIR, 'dist', 'mkcert.exe');
-    if (!existsSync(mkcertPath)) {
-        console.error('mkcert.exe not found. Place it next to the exe or install via choco: choco install mkcert');
-        process.exit(1);
-    }
-    try {
-        execSync(`"${mkcertPath}" -install`, { stdio: 'inherit' });
-    }
-    catch { }
+    // Generate self-signed certificate using OpenSSL (bundled with Git for Windows)
+    // Self-signed root certs are exempt from Windows SChannel revocation checks,
+    // unlike mkcert's CA-signed certs which trigger CRYPT_E_NO_REVOCATION_CHECK.
+    const certFile = join(PROJECT_DIR, 'certs', 'localhost.pem');
+    const keyFile = join(PROJECT_DIR, 'certs', 'localhost-key.pem');
     const cdir = join(PROJECT_DIR, 'certs');
     if (!existsSync(cdir))
         mkdirSync(cdir, { recursive: true });
-    execSync(`"${mkcertPath}" -key-file "${join(cdir, 'localhost-key.pem')}" -cert-file "${join(cdir, 'localhost.pem')}" localhost 127.0.0.1`, { stdio: 'inherit' });
-    console.log('Certificates generated.');
+    // Remove old certs if present
+    try {
+        fs.unlinkSync(certFile);
+        fs.unlinkSync(keyFile);
+    }
+    catch { }
+    try {
+        execSync(`openssl req -x509 -newkey rsa:2048 -nodes ` +
+            `-keyout "${keyFile}" -out "${certFile}" -days 1825 ` +
+            `-subj "//CN=localhost" ` +
+            `-addext "subjectAltName=DNS:localhost,IP:127.0.0.1"`, { stdio: 'pipe' });
+        console.log('Certificate generated (self-signed, 5 year validity).');
+        // Install as trusted root in Windows cert store
+        // Root certs skip revocation check in SChannel
+        execSync(`certutil -addstore -user Root "${certFile}"`, { stdio: 'pipe' });
+        console.log('Certificate installed as trusted root.');
+    }
+    catch (e) {
+        console.error('Certificate setup failed:', e.stderr?.toString() || e.message);
+        console.error('Ensure OpenSSL is available (bundled with Git for Windows).');
+        process.exit(1);
+    }
 }
 function pad(s, n) { return s + ' '.repeat(Math.max(0, n - s.length)); }
 function runStatus() {

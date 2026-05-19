@@ -322,22 +322,23 @@ export async function startServer() {
 
   if (config.https) {
     if (!fs.existsSync(config.https.key) || !fs.existsSync(config.https.cert)) {
-      // 尝试自动生成证书
-      logger.warn('HTTPS certificates not found, attempting to generate...');
-      // 首先在 dist/ 找，其次项目根
-      let mkcertPath = path.join(projectDir, 'dist', 'mkcert.exe');
-      if (!fs.existsSync(mkcertPath)) mkcertPath = path.join(projectDir, 'mkcert.exe');
-      if (fs.existsSync(mkcertPath)) {
-        try {
-          fs.mkdirSync(path.dirname(config.https.key), { recursive: true });
-          execSync(`"${mkcertPath}" -key-file "${config.https.key}" -cert-file "${config.https.cert}" localhost 127.0.0.1`, { stdio: 'pipe' });
-          logger.info('Certificates auto-generated');
-        } catch {
-          logger.error('Failed to generate certificates. Run: claude3p-mcp-router cert-setup');
-          process.exit(1);
-        }
-      } else {
-        logger.error('HTTPS certificates not found and mkcert.exe missing!');
+      // Attempt to auto-generate self-signed certificate using OpenSSL
+      // Self-signed root certs avoid Windows SChannel CRYPT_E_NO_REVOCATION_CHECK
+      logger.warn('HTTPS certificates not found, attempting to auto-generate...');
+      try {
+        fs.mkdirSync(path.dirname(config.https.key), { recursive: true });
+        execSync(
+          `openssl req -x509 -newkey rsa:2048 -nodes ` +
+          `-keyout "${config.https.key}" -out "${config.https.cert}" -days 1825 ` +
+          `-subj "//CN=localhost" ` +
+          `-addext "subjectAltName=DNS:localhost,IP:127.0.0.1"`,
+          { stdio: 'pipe' }
+        );
+        // Install as trusted root (root certs skip SChannel revocation checks)
+        execSync(`certutil -addstore -user Root "${config.https.cert}"`, { stdio: 'pipe' });
+        logger.info('HTTPS certificates auto-generated and trusted');
+      } catch {
+        logger.error('Failed to auto-generate certificates. Run: claude3p-mcp-router cert-setup');
         process.exit(1);
       }
     }
