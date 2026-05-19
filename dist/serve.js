@@ -8,6 +8,7 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { spawn, execSync } from 'child_process';
+import { generateCert } from './cert.js';
 import { fileURLToPath } from 'url';
 import winston from 'winston';
 import dotenv from 'dotenv';
@@ -278,15 +279,14 @@ export async function startServer() {
     };
     if (config.https) {
         if (!fs.existsSync(config.https.key) || !fs.existsSync(config.https.cert)) {
-            // Attempt to auto-generate self-signed certificate using OpenSSL
+            // Attempt to auto-generate self-signed certificate using node-forge (pure JS)
             // Self-signed root certs avoid Windows SChannel CRYPT_E_NO_REVOCATION_CHECK
             logger.warn('HTTPS certificates not found, attempting to auto-generate...');
             try {
                 fs.mkdirSync(path.dirname(config.https.key), { recursive: true });
-                execSync(`openssl req -x509 -newkey rsa:2048 -nodes ` +
-                    `-keyout "${config.https.key}" -out "${config.https.cert}" -days 1825 ` +
-                    `-subj "//CN=localhost" ` +
-                    `-addext "subjectAltName=DNS:localhost,IP:127.0.0.1"`, { stdio: 'pipe' });
+                const { cert, key } = generateCert();
+                fs.writeFileSync(config.https.key, key);
+                fs.writeFileSync(config.https.cert, cert);
                 // Install as trusted root (root certs skip SChannel revocation checks)
                 execSync(`certutil -addstore -user Root "${config.https.cert}"`, { stdio: 'pipe' });
                 logger.info('HTTPS certificates auto-generated and trusted');

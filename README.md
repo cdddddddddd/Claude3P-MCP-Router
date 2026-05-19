@@ -96,7 +96,6 @@ Each MCP server gets its own endpoint and toolPolicy. The router manages child p
 ## Requirements
 
 - **Node.js** >= 20
-- **OpenSSL** (bundled with Git for Windows; used for HTTPS certificate generation)
 - **Windows** (currently; cross-platform support planned)
 - **pip** (for installing `uv`, auto-detected on first start)
 
@@ -160,7 +159,6 @@ Claude Desktop (3P Gateway)
 ### 环境要求
 
 - **Node.js** >= 20
-- **OpenSSL**（Git for Windows 自带；用于生成 HTTPS 证书）
 - **Windows**（目前仅支持 Windows，跨平台计划中）
 - **pip**（用于安装 uv，首次启动自动检测）
 

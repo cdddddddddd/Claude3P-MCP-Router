@@ -9,6 +9,7 @@
  */
 
 import { startServer } from './serve.js';
+import { generateCert } from './cert.js';
 import { execSync, spawn } from 'child_process';
 import { existsSync, readFileSync, writeFileSync, readdirSync, mkdirSync } from 'fs';
 import * as fs from 'fs';
@@ -87,7 +88,7 @@ function runSync(): void {
 }
 
 function runCertSetup(): void {
-  // Generate self-signed certificate using OpenSSL (bundled with Git for Windows)
+  // Generate self-signed certificate using node-forge (pure JS, no system deps)
   // Self-signed root certs are exempt from Windows SChannel revocation checks,
   // unlike mkcert's CA-signed certs which trigger CRYPT_E_NO_REVOCATION_CHECK.
   const certFile = join(PROJECT_DIR, 'certs', 'localhost.pem');
@@ -100,13 +101,9 @@ function runCertSetup(): void {
   try { fs.unlinkSync(certFile); fs.unlinkSync(keyFile); } catch {}
 
   try {
-    execSync(
-      `openssl req -x509 -newkey rsa:2048 -nodes ` +
-      `-keyout "${keyFile}" -out "${certFile}" -days 1825 ` +
-      `-subj "//CN=localhost" ` +
-      `-addext "subjectAltName=DNS:localhost,IP:127.0.0.1"`,
-      { stdio: 'pipe' }
-    );
+    const { cert, key } = generateCert();
+    fs.writeFileSync(certFile, cert);
+    fs.writeFileSync(keyFile, key);
     console.log('Certificate generated (self-signed, 5 year validity).');
 
     // Install as trusted root in Windows cert store
@@ -115,7 +112,6 @@ function runCertSetup(): void {
     console.log('Certificate installed as trusted root.');
   } catch (e: any) {
     console.error('Certificate setup failed:', e.stderr?.toString() || e.message);
-    console.error('Ensure OpenSSL is available (bundled with Git for Windows).');
     process.exit(1);
   }
 }
